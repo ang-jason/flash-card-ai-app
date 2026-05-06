@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Flashcard App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            max-width: 700px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 25px;
+            font-size: 24px;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                padding: 20px;
+                border-radius: 15px;
+            }
+
+            h1 {
+                font-size: 22px;
+                margin-bottom: 20px;
+            }
+        }
+
+        .upload-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .file-label {
+            background: #667eea;
+            color: white;
+            padding: 14px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: inline-block;
+            font-size: 16px;
+            min-height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .file-label:hover {
+            background: #5568d3;
+        }
+
+        .file-name {
+            margin-top: 10px;
+            color: #666;
+            font-size: 14px;
+            word-break: break-word;
+        }
+
+        .generate-btn {
+            background: #764ba2;
+            color: white;
+            border: none;
+            padding: 14px 40px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+            margin-top: 10px;
+            min-height: 48px;
+        }
+
+        .generate-btn:hover {
+            background: #6a4190;
+        }
+
+        .generate-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .question-count-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .count-btn {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            padding: 14px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+            min-height: 48px;
+            font-weight: 500;
+        }
+
+        .count-btn:hover, .count-btn.selected {
+            background: #667eea;
+            color: white;
+        }
+
+        .timer-btn {
+            background: white;
+            color: #764ba2;
+            border: 2px solid #764ba2;
+            padding: 14px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+            min-height: 48px;
+            font-weight: 500;
+        }
+
+        .timer-btn:hover, .timer-btn.selected {
+            background: #764ba2;
+            color: white;
+        }
+
+        .api-btn {
+            background: white;
+            color: #10b981;
+            border: 2px solid #10b981;
+            padding: 14px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+            min-height: 48px;
+            font-weight: 500;
+        }
+
+        .api-btn:hover, .api-btn.selected {
+            background: #10b981;
+            color: white;
+        }
+
+        .start-quiz-btn {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 14px 40px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+            min-height: 48px;
+            font-weight: 600;
+            display: block;
+        }
+
+        .start-quiz-btn:hover {
+            background: #059669;
+        }
+
+        .timer-display {
+            text-align: center;
+            font-size: 24px;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .timer-display.warning {
+            color: #f59e0b;
+        }
+
+        .timer-display.danger {
+            color: #ef4444;
+        }
+
+        @media (max-width: 768px) {
+            .file-label, .generate-btn {
+                width: 100%;
+                padding: 14px 20px;
+            }
+
+            .count-btn, .timer-btn {
+                flex: 1;
+                min-width: 100px;
+            }
+
+            .start-quiz-btn {
+                width: 90%;
+            }
+        }
+
+        .flashcard {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .question {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            font-size: 17px;
+            font-weight: 500;
+            color: #333;
+            line-height: 1.5;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .option {
+            background: white;
+            border: 2px solid #e0e0e0;
+            padding: 16px 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 15px;
+            line-height: 1.4;
+            min-height: 52px;
+            display: flex;
+            align-items: center;
+        }
+
+        @media (max-width: 768px) {
+            .question {
+                padding: 18px;
+                font-size: 16px;
+                margin-bottom: 18px;
+            }
+
+            .option {
+                padding: 14px 16px;
+                font-size: 15px;
+                min-height: 48px;
+            }
+
+            .options {
+                gap: 8px;
+            }
+        }
+
+        .option:hover {
+            border-color: #667eea;
+            transform: translateX(5px);
+        }
+
+        .option.selected {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .option.correct {
+            background: #10b981;
+            color: white;
+            border-color: #10b981;
+        }
+
+        .option.incorrect {
+            background: #ef4444;
+            color: white;
+            border-color: #ef4444;
+        }
+
+        .option.disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .feedback {
+            display: none;
+            padding: 18px;
+            border-radius: 10px;
+            margin-top: 20px;
+            animation: fadeIn 0.5s;
+        }
+
+        .feedback.correct {
+            background: #d1fae5;
+            border: 2px solid #10b981;
+            color: #065f46;
+        }
+
+        .feedback.incorrect {
+            background: #fee2e2;
+            border: 2px solid #ef4444;
+            color: #991b1b;
+        }
+
+        .feedback-title {
+            font-weight: 600;
+            font-size: 17px;
+            margin-bottom: 10px;
+        }
+
+        .explanation {
+            margin-top: 10px;
+            line-height: 1.6;
+            font-size: 15px;
+        }
+
+        .next-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+            display: none;
+            margin: 20px auto 0;
+            min-height: 48px;
+            width: 100%;
+            max-width: 200px;
+        }
+
+        .next-btn:hover {
+            background: #5568d3;
+        }
+
+        @media (max-width: 768px) {
+            .feedback {
+                padding: 16px;
+            }
+
+            .feedback-title {
+                font-size: 16px;
+            }
+
+            .explanation {
+                font-size: 14px;
+            }
+
+            .next-btn {
+                max-width: 100%;
+            }
+        }
+
+        .progress {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .score {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 18px;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .loading {
+            text-align: center;
+            color: #667eea;
+            font-size: 16px;
+            display: none;
+        }
+
+        #loadingStatus {
+            margin-top: 10px;
+            font-weight: 500;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 AI Flashcard Generator</h1>
+        
+        <div class="upload-section" id="uploadSection">
+            <div class="file-input-wrapper">
+                <input type="file" id="fileInput" accept=".txt,.pdf,.docx">
+                <label for="fileInput" class="file-label">Choose File</label>
+            </div>
+            <div class="file-name" id="fileName"></div>
+            <button class="generate-btn" id="generateBtn" disabled>Generate Flashcards</button>
+        </div>
+
+        <div class="question-count-section" id="questionCountSection" style="display: none;">
+            <h3 style="text-align: center; margin-bottom: 20px; color: #667eea;">Select AI Provider</h3>
+            <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin-bottom: 30px;">
+                <button class="api-btn" data-api="claude">Claude (Sonnet 4)</button>
+                <button class="api-btn" data-api="groq">Groq (Llama 3.1 70B)</button>
+                <button class="api-btn" data-api="together">Together (Llama 3.1 70B)</button>
+            </div>
+            
+            <div id="apiKeySection" style="display: none; margin-bottom: 30px;">
+                <input type="text" id="apiKeyInput" placeholder="Enter API Key or leave empty to use env variable" style="width: 100%; max-width: 400px; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; display: block; margin: 0 auto;">
+                <p style="text-align: center; font-size: 12px; color: #666; margin-top: 8px;">Get free API key from <a href="#" id="apiKeyLink" target="_blank" style="color: #667eea;">provider website</a></p>
+                <p style="text-align: center; font-size: 11px; color: #999; margin-top: 4px;">Or set GROQ_API_KEY / TOGETHER_API_KEY environment variable</p>
+            </div>
+            
+            <h3 style="text-align: center; margin-bottom: 20px; color: #667eea;">Select Number of Questions</h3>
+            <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin-bottom: 30px;">
+                <button class="count-btn" data-count="5">5 Questions</button>
+                <button class="count-btn" data-count="10">10 Questions</button>
+                <button class="count-btn" data-count="15">15 Questions</button>
+            </div>
+            
+            <h3 style="text-align: center; margin-bottom: 20px; color: #667eea;">Time per Question (seconds)</h3>
+            <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                <button class="timer-btn" data-timer="15">15s</button>
+                <button class="timer-btn" data-timer="30">30s</button>
+                <button class="timer-btn" data-timer="60">60s</button>
+                <button class="timer-btn" data-timer="0">No Timer</button>
+            </div>
+            
+            <button class="start-quiz-btn" id="startQuizBtn" style="display: none; margin: 30px auto 0;">Start Quiz</button>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p id="loadingStatus">Processing...</p>
+        </div>
+
+        <div class="flashcard" id="flashcard">
+            <div class="progress" id="progress"></div>
+            <div class="timer-display" id="timerDisplay" style="display: none;"></div>
+            <div class="question" id="question"></div>
+            <div class="options" id="options"></div>
+            <div class="feedback" id="feedback">
+                <div class="feedback-title" id="feedbackTitle"></div>
+                <div class="explanation" id="explanation"></div>
+            </div>
+            <button class="next-btn" id="nextBtn">Next Question</button>
+            <div class="score" id="score"></div>
+        </div>
+    </div>
+
+    <script>
+        let questions = [];
+        let currentQuestion = 0;
+        let score = 0;
+        let uploadedFile = null;
+        let questionCount = 5;
+        let timerSeconds = 30;
+        let timerInterval = null;
+        let timeRemaining = 0;
+        let selectedApi = 'claude';
+        let apiKey = '';
+
+        const fileInput = document.getElementById('fileInput');
+        const fileName = document.getElementById('fileName');
+        const generateBtn = document.getElementById('generateBtn');
+        const uploadSection = document.getElementById('uploadSection');
+        const questionCountSection = document.getElementById('questionCountSection');
+        const apiKeySection = document.getElementById('apiKeySection');
+        const apiKeyInput = document.getElementById('apiKeyInput');
+        const apiKeyLink = document.getElementById('apiKeyLink');
+        const startQuizBtn = document.getElementById('startQuizBtn');
+        const loading = document.getElementById('loading');
+        const loadingStatus = document.getElementById('loadingStatus');
+        const flashcard = document.getElementById('flashcard');
+        const timerDisplay = document.getElementById('timerDisplay');
+        const questionEl = document.getElementById('question');
+        const optionsEl = document.getElementById('options');
+        const feedbackEl = document.getElementById('feedback');
+        const feedbackTitle = document.getElementById('feedbackTitle');
+        const explanation = document.getElementById('explanation');
+        const nextBtn = document.getElementById('nextBtn');
+        const progressEl = document.getElementById('progress');
+        const scoreEl = document.getElementById('score');
+
+        // POC: Simple hardcoded questions for demo
+        const pocQuestions = [
+            {
+                question: "What is the capital of France?",
+                options: ["London", "Berlin", "Paris", "Madrid"],
+                correct: 2,
+                explanation: "Paris is the capital and most populous city of France, known for landmarks like the Eiffel Tower and the Louvre Museum."
+            },
+            {
+                question: "Which planet is known as the Red Planet?",
+                options: ["Venus", "Mars", "Jupiter", "Saturn"],
+                correct: 1,
+                explanation: "Mars is called the Red Planet due to its reddish appearance, caused by iron oxide (rust) on its surface."
+            },
+            {
+                question: "What is the largest ocean on Earth?",
+                options: ["Atlantic Ocean", "Indian Ocean", "Arctic Ocean", "Pacific Ocean"],
+                correct: 3,
+                explanation: "The Pacific Ocean is the largest and deepest ocean on Earth, covering more than 30% of the Earth's surface."
+            },
+            {
+                question: "Who painted the Mona Lisa?",
+                options: ["Vincent van Gogh", "Leonardo da Vinci", "Pablo Picasso", "Michelangelo"],
+                correct: 1,
+                explanation: "Leonardo da Vinci painted the Mona Lisa in the early 16th century. It's one of the most famous paintings in the world."
+            },
+            {
+                question: "What is the chemical symbol for gold?",
+                options: ["Go", "Gd", "Au", "Ag"],
+                correct: 2,
+                explanation: "Au is the chemical symbol for gold, derived from the Latin word 'aurum' meaning gold."
+            }
+        ];
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+                const sizeLimit = 60;
+                const sizeColor = fileSizeMB > sizeLimit ? '#ef4444' : '#10b981';
+                
+                fileName.innerHTML = `
+                    <div style="margin-bottom: 5px;">${file.name}</div>
+                    <div style="font-size: 13px; color: ${sizeColor};">
+                        Size: ${fileSizeMB} MB / ${sizeLimit} MB limit
+                    </div>
+                `;
+                
+                generateBtn.disabled = false;
+                uploadedFile = file;
+            }
+        });
+
+        generateBtn.addEventListener('click', async () => {
+            uploadSection.style.display = 'none';
+            questionCountSection.style.display = 'block';
+        });
+
+        // Handle API provider selection
+        document.querySelectorAll('.api-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.api-btn').forEach(b => b.classList.remove('selected'));
+                this.classList.add('selected');
+                selectedApi = this.dataset.api;
+                
+                // Show API key input for free providers
+                if (selectedApi === 'groq') {
+                    apiKeySection.style.display = 'block';
+                    apiKeyLink.href = 'https://console.groq.com/keys';
+                    apiKeyLink.textContent = 'console.groq.com';
+                } else if (selectedApi === 'together') {
+                    apiKeySection.style.display = 'block';
+                    apiKeyLink.href = 'https://api.together.xyz/settings/api-keys';
+                    apiKeyLink.textContent = 'api.together.xyz';
+                } else {
+                    apiKeySection.style.display = 'none';
+                    apiKey = '';
+                }
+                
+                checkSelections();
+            });
+        });
+
+        // Store API key
+        apiKeyInput.addEventListener('input', function() {
+            apiKey = this.value.trim();
+            checkSelections();
+        });
+
+        // Handle question count selection
+        document.querySelectorAll('.count-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.count-btn').forEach(b => b.classList.remove('selected'));
+                this.classList.add('selected');
+                questionCount = parseInt(this.dataset.count);
+                checkSelections();
+            });
+        });
+
+        // Handle timer selection
+        document.querySelectorAll('.timer-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.timer-btn').forEach(b => b.classList.remove('selected'));
+                this.classList.add('selected');
+                timerSeconds = parseInt(this.dataset.timer);
+                checkSelections();
+            });
+        });
+
+        function checkSelections() {
+            const apiSelected = document.querySelector('.api-btn.selected');
+            const countSelected = document.querySelector('.count-btn.selected');
+            const timerSelected = document.querySelector('.timer-btn.selected');
+            
+            // For free APIs, allow proceeding even without manual key (will try env variable)
+            const needsApiKey = selectedApi !== 'claude';
+            const hasApiKey = !needsApiKey || true; // Always allow, we'll check env var at runtime
+            
+            if (apiSelected && countSelected && timerSelected && hasApiKey) {
+                startQuizBtn.style.display = 'block';
+            } else {
+                startQuizBtn.style.display = 'none';
+            }
+        }
+
+        startQuizBtn.addEventListener('click', async () => {
+            questionCountSection.style.display = 'none';
+            await generateQuestions();
+        });
+
+        function getApiConfig() {
+            // Try to get API key from input or environment variable
+            let finalApiKey = apiKey;
+            
+            if (!finalApiKey && selectedApi === 'groq') {
+                // Try environment variable for Groq
+                finalApiKey = typeof process !== 'undefined' && process.env?.GROQ_API_KEY || '';
+            } else if (!finalApiKey && selectedApi === 'together') {
+                // Try environment variable for Together
+                finalApiKey = typeof process !== 'undefined' && process.env?.TOGETHER_API_KEY || '';
+            }
+            
+            const configs = {
+                claude: {
+                    url: 'https://api.anthropic.com/v1/messages',
+                    model: 'claude-sonnet-4-20250514',
+                    headers: { 'Content-Type': 'application/json' }
+                },
+                groq: {
+                    url: 'https://api.groq.com/openai/v1/chat/completions',
+                    model: 'llama-3.1-70b-versatile',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${finalApiKey}`
+                    },
+                    requiresKey: true,
+                    hasKey: !!finalApiKey
+                },
+                together: {
+                    url: 'https://api.together.xyz/v1/chat/completions',
+                    model: 'meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${finalApiKey}`
+                    },
+                    requiresKey: true,
+                    hasKey: !!finalApiKey
+                }
+            };
+            return configs[selectedApi];
+        }
+
+        async function callClaudeApi(content, config) {
+            const response = await fetch(config.url, {
+                method: 'POST',
+                headers: config.headers,
+                body: JSON.stringify({
+                    model: config.model,
+                    max_tokens: 2000,
+                    messages: [{ role: 'user', content }]
+                })
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Claude API Error (${response.status}): ${errorText.substring(0, 200)}`);
+            }
+
+            const data = await response.json();
+            if (data.error) throw new Error(data.error.message || 'API error');
+            if (!data.content || !Array.isArray(data.content)) throw new Error('Invalid response format');
+
+            const textContent = data.content.filter(item => item.type === "text").map(item => item.text).join("");
+            if (!textContent) throw new Error('No text content in response');
+
+            return textContent;
+        }
+
+        async function callGroqApi(content, config) {
+            // Convert PDF content to text-only for Groq (doesn't support PDFs)
+            let prompt = typeof content === 'string' ? content : content.find(c => c.type === 'text')?.text || '';
+            
+            const response = await fetch(config.url, {
+                method: 'POST',
+                headers: config.headers,
+                body: JSON.stringify({
+                    model: config.model,
+                    messages: [{ role: 'user', content: prompt }],
+                    temperature: 0.7,
+                    max_tokens: 2000
+                })
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Groq API Error (${response.status}): ${errorText.substring(0, 200)}`);
+            }
+
+            const data = await response.json();
+            if (data.error) throw new Error(data.error.message || 'API error');
+
+            return data.choices[0]?.message?.content || '';
+        }
+
+        async function callTogetherApi(content, config) {
+            // Convert PDF content to text-only for Together (doesn't support PDFs)
+            let prompt = typeof content === 'string' ? content : content.find(c => c.type === 'text')?.text || '';
+            
+            const response = await fetch(config.url, {
+                method: 'POST',
+                headers: config.headers,
+                body: JSON.stringify({
+                    model: config.model,
+                    messages: [{ role: 'user', content: prompt }],
+                    temperature: 0.7,
+                    max_tokens: 2000
+                })
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Together API Error (${response.status}): ${errorText.substring(0, 200)}`);
+            }
+
+            const data = await response.json();
+            if (data.error) throw new Error(data.error.message || 'API error');
+
+            return data.choices[0]?.message?.content || '';
+        }
+
+        async function generateQuestions() {
+            currentQuestion = 0;
+            score = 0;
+            
+            loading.style.display = 'block';
+            loadingStatus.textContent = 'Reading file...';
+            
+            try {
+                // Check file size (limit to 60MB)
+                if (uploadedFile.size > 60 * 1024 * 1024) {
+                    throw new Error('File too large. Please use files under 60MB.');
+                }
+                
+                loadingStatus.textContent = 'Processing content...';
+                let messageContent;
+                
+                // Get API configuration
+                const apiConfig = getApiConfig();
+                
+                // Check if API key is required but missing
+                if (apiConfig.requiresKey && !apiConfig.hasKey) {
+                    throw new Error(`${selectedApi.toUpperCase()} API key required. Enter key or set ${selectedApi.toUpperCase()}_API_KEY environment variable.`);
+                }
+                
+                if (uploadedFile.type === 'application/pdf') {
+                    // Handle PDF
+                    const base64Data = await new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = () => resolve(reader.result.split(',')[1]);
+                        reader.onerror = () => reject(new Error('Failed to read PDF'));
+                        reader.readAsDataURL(uploadedFile);
+                    });
+                    
+                    messageContent = [
+                        {
+                            type: "document",
+                            source: {
+                                type: "base64",
+                                media_type: "application/pdf",
+                                data: base64Data
+                            }
+                        },
+                        {
+                            type: "text",
+                            text: `Generate ${questionCount} multiple-choice questions from the first few pages of this PDF. Focus on key concepts. Return ONLY valid JSON, no markdown, no backticks, no preamble.
+
+JSON format:
+[
+  {
+    "question": "question text",
+    "options": ["option1", "option2", "option3", "option4"],
+    "correct": 0,
+    "explanation": "explanation text"
+  }
+]
+
+Rules:
+- correct is the index (0-3) of the correct answer
+- Make questions clear and specific
+- Ensure one option is definitively correct
+- Explanations should be concise`
+                        }
+                    ];
+                } else {
+                    // Handle text files
+                    let textContent = await new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = () => resolve(reader.result);
+                        reader.onerror = () => reject(new Error('Failed to read file'));
+                        reader.readAsText(uploadedFile);
+                    });
+                    
+                    // Limit text length to ~10k characters
+                    if (textContent.length > 10000) {
+                        textContent = textContent.substring(0, 10000) + '...';
+                    }
+                    
+                    messageContent = `Generate ${questionCount} multiple-choice questions from this content. Return ONLY valid JSON, no markdown, no backticks, no preamble.
+
+Content:
+${textContent}
+
+JSON format:
+[
+  {
+    "question": "question text",
+    "options": ["option1", "option2", "option3", "option4"],
+    "correct": 0,
+    "explanation": "explanation text"
+  }
+]
+
+Rules:
+- correct is the index (0-3) of the correct answer
+- Make questions clear and specific
+- Ensure one option is definitively correct
+- Explanations should be concise`;
+                }
+
+                loadingStatus.textContent = 'Generating questions with AI...';
+                
+                // Simulate sub-steps for user feedback
+                await new Promise(resolve => setTimeout(resolve, 300));
+                loadingStatus.textContent = 'Sending content to AI model...';
+                
+                // Call appropriate API based on provider
+                let data;
+                if (selectedApi === 'claude') {
+                    data = await callClaudeApi(messageContent, apiConfig);
+                } else if (selectedApi === 'groq') {
+                    data = await callGroqApi(messageContent, apiConfig);
+                } else if (selectedApi === 'together') {
+                    data = await callTogetherApi(messageContent, apiConfig);
+                }
+                
+                loadingStatus.textContent = 'Analyzing content structure...';
+                await new Promise(resolve => setTimeout(resolve, 300));
+                
+                loadingStatus.textContent = 'Extracting key concepts...';
+                await new Promise(resolve => setTimeout(resolve, 300));
+                
+                loadingStatus.textContent = 'Formulating questions...';
+                await new Promise(resolve => setTimeout(resolve, 300));
+                
+                loadingStatus.textContent = 'Generating answer options...';
+                await new Promise(resolve => setTimeout(resolve, 300));
+                
+                loadingStatus.textContent = 'Creating explanations...';
+                await new Promise(resolve => setTimeout(resolve, 300));
+                
+                // Clean and parse JSON
+                const cleaned = data.replace(/```json|```/g, "").trim();
+                questions = JSON.parse(cleaned);
+                
+                loadingStatus.textContent = 'Validating questions...';
+                await new Promise(resolve => setTimeout(resolve, 300));
+                
+                if (!Array.isArray(questions) || questions.length === 0) {
+                    throw new Error('Invalid questions format');
+                }
+                
+                loadingStatus.textContent = 'Preparing flashcards...';
+                await new Promise(resolve => setTimeout(resolve, 300));
+                
+                loading.style.display = 'none';
+                flashcard.style.display = 'block';
+                displayQuestion();
+            } catch (error) {
+                console.error('Error generating questions:', error);
+                console.error('Full error details:', error.message);
+                loading.style.display = 'none';
+                uploadSection.style.display = 'block';
+                alert(`Error: ${error.message}\n\nPlease try again or use a smaller file.`);
+            }
+        }
+
+        function startTimer() {
+            if (timerSeconds === 0) {
+                timerDisplay.style.display = 'none';
+                return;
+            }
+
+            timeRemaining = timerSeconds;
+            timerDisplay.style.display = 'block';
+            timerDisplay.textContent = `⏱️ ${timeRemaining}s`;
+            timerDisplay.className = 'timer-display';
+
+            timerInterval = setInterval(() => {
+                timeRemaining--;
+                timerDisplay.textContent = `⏱️ ${timeRemaining}s`;
+
+                if (timeRemaining <= 5) {
+                    timerDisplay.className = 'timer-display danger';
+                } else if (timeRemaining <= 10) {
+                    timerDisplay.className = 'timer-display warning';
+                }
+
+                if (timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    timerDisplay.textContent = "⏱️ Time's up!";
+                }
+            }, 1000);
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        function displayQuestion() {
+            stopTimer();
+            
+            if (currentQuestion >= questions.length) {
+                showFinalScore();
+                return;
+            }
+
+            const q = questions[currentQuestion];
+            questionEl.textContent = q.question;
+            progressEl.textContent = `Question ${currentQuestion + 1} of ${questions.length}`;
+            
+            optionsEl.innerHTML = '';
+            q.options.forEach((option, index) => {
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'option';
+                optionDiv.textContent = option;
+                optionDiv.onclick = () => selectAnswer(index);
+                optionsEl.appendChild(optionDiv);
+            });
+
+            feedbackEl.style.display = 'none';
+            nextBtn.style.display = 'none';
+            scoreEl.textContent = `Score: ${score}/${questions.length}`;
+            
+            startTimer();
+        }
+
+        function selectAnswer(selectedIndex) {
+            stopTimer();
+            
+            const q = questions[currentQuestion];
+            const options = document.querySelectorAll('.option');
+            
+            options.forEach(opt => {
+                opt.classList.add('disabled');
+                opt.onclick = null;
+            });
+
+            if (selectedIndex === q.correct) {
+                options[selectedIndex].classList.add('correct');
+                feedbackEl.className = 'feedback correct';
+                feedbackTitle.textContent = '✓ Correct!';
+                score++;
+            } else {
+                options[selectedIndex].classList.add('incorrect');
+                options[q.correct].classList.add('correct');
+                feedbackEl.className = 'feedback incorrect';
+                feedbackTitle.textContent = '✗ Incorrect';
+            }
+
+            explanation.textContent = q.explanation;
+            feedbackEl.style.display = 'block';
+            nextBtn.style.display = 'block';
+            scoreEl.textContent = `Score: ${score}/${questions.length}`;
+        }
+
+        nextBtn.addEventListener('click', () => {
+            currentQuestion++;
+            displayQuestion();
+        });
+
+        function showFinalScore() {
+            flashcard.innerHTML = `
+                <div style="text-align: center;">
+                    <h2 style="color: #667eea; margin-bottom: 20px;">🎉 Quiz Complete!</h2>
+                    <div style="font-size: 48px; color: #764ba2; margin: 30px 0;">
+                        ${score}/${questions.length}
+                    </div>
+                    <div style="font-size: 20px; color: #666;">
+                        ${Math.round((score/questions.length) * 100)}% Correct
+                    </div>
+                    <button class="generate-btn" style="margin-top: 30px;" onclick="location.reload()">
+                        Try Again
+                    </button>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
