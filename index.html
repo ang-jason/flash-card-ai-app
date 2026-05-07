@@ -448,7 +448,7 @@
             <h3 style="text-align: center; margin-bottom: 20px; color: #667eea;">Select AI Provider</h3>
             <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin-bottom: 30px;">
                 <button class="api-btn" data-api="claude">Claude (Sonnet 4)</button>
-                <button class="api-btn" data-api="groq">Groq (Llama 3.1 70B)</button>
+                <button class="api-btn" data-api="groq">Groq (Llama 3.3 70B)</button>
                 <button class="api-btn" data-api="together">Together (Llama 3.1 70B)</button>
             </div>
             
@@ -669,7 +669,7 @@
                 },
                 groq: {
                     url: 'https://api.groq.com/openai/v1/chat/completions',
-                    model: 'llama-3.1-70b-versatile',
+                    model: 'llama-3.3-70b-versatile',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${finalApiKey}`
