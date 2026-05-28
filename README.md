@@ -1,5 +1,5 @@
 # 🎯 AI Flashcard Generator
-<br>
+
 [![Netlify Status](https://api.netlify.com/api/v1/badges/d8aac65f-83aa-4853-9fd4-fd5febcc85f3/deploy-status)](https://app.netlify.com/projects/togaf-definitions/deploys)
 <br>
 Interactive flashcard quiz app that generates multiple-choice questions from uploaded files using AI.
